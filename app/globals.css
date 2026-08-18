@@ -248,16 +248,16 @@ body {
 
 .booth-desk {
   display: grid;
-  grid-template-columns: minmax(280px, 0.92fr) minmax(0, 1.35fr) minmax(270px, 0.82fr);
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.95fr) minmax(270px, 0.85fr);
   gap: 1px;
-  min-height: 72vh;
+  min-height: calc(100vh - 92px);
   background: var(--pc-border);
   border: 1px solid var(--pc-border);
 }
 
 .booth-stack {
   display: grid;
-  grid-template-rows: minmax(160px, 1.1fr) minmax(160px, 1fr) minmax(140px, 0.8fr);
+  grid-template-rows: minmax(200px, 1.35fr) minmax(140px, 1fr) minmax(140px, 0.85fr);
   gap: 1px;
   min-width: 0;
   background: var(--pc-border);

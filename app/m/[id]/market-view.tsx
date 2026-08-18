@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   VenueShell,
+  VenueKitStringsProvider,
   MarketDetail,
   ActivityFeed,
   ResolutionReceipt,
@@ -14,7 +15,7 @@ import {
   short,
   useMarketDetailData,
 } from '@prophecy-dev/venue-kit'
-import { Comments, PriceChart, useConnect } from '@prophecy-dev/connect-react'
+import { PriceChart, useConnect } from '@prophecy-dev/connect-react'
 import { BoothHeader } from '../../components/booth-header'
 import { WalletButton } from '../../components/booth-session'
 
@@ -22,11 +23,25 @@ function BoothEmpty({ title, message }: { title: string; message: string }) {
   return <EmptyState className="booth-empty" title={title} message={message} />
 }
 
+const TRADER_STRINGS = {
+  market: {
+    predict: 'Take',
+    predictOutcome: (label: string) => `Position ${label}`,
+    volumeSuffix: 'vol',
+    tradesSuffix: 'prints',
+    recentActivity: 'Prints',
+  },
+  positions: {
+    sell: 'Exit',
+  },
+} as const
+
 export function MarketView({ id }: { id: string }) {
   const { event, loading, notFound } = useMarketDetailData(id)
   const asked = event ? { ...event, title: event.name || event.title } : null
 
   return (
+    <VenueKitStringsProvider value={TRADER_STRINGS}>
     <div data-density="dense" data-archetype="booth">
       <VenueShell
         maxWidth="100%"
@@ -114,20 +129,11 @@ export function MarketView({ id }: { id: string }) {
               </div>
             </section>
 
-            <section className="booth-monitor booth-iso__wide">
-              <header className="booth-monitor__bezel">
-                <span className="booth-monitor__cam">ISO 5</span>
-                <span className="booth-monitor__label">TALKBACK</span>
-                <span className="booth-monitor__stby">COMMS</span>
-              </header>
-              <div className="booth-monitor__screen">
-                <Comments subjectType="event" subjectRef={id} />
-              </div>
-            </section>
           </div>
         )}
       </VenueShell>
     </div>
+    </VenueKitStringsProvider>
   )
 }
 
