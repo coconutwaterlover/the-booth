@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.next/
+.vinext/
+.wrangler/
+.dev.vars
+
+.vercel
+.env*
+next-env.d.ts
+
+# Holds your Prophecy access key.
+.npmrc
