@@ -6,8 +6,6 @@ import { PriceChart, useDailyDrip, useProphecy, useStarterGrant } from '@prophec
 import {
   VenueShell,
   VenueKitStringsProvider,
-  MarketGrid,
-  MarketCard,
   marketPath,
   Leaderboard,
   PositionsTable,
@@ -16,6 +14,7 @@ import {
   ActivityFeed,
   pickFeatured,
   fmtWei,
+  usePositionsData,
   type PositionRow,
 } from '@prophecy-dev/venue-kit'
 import { useVenueMarkets } from './venue-markets'
@@ -25,6 +24,8 @@ import { WalletButton } from './components/booth-session'
 import { SimBook, SimFlow, SimQuote, useSimClock } from './components/booth-sim'
 import { BoothSpark } from './components/booth-spark'
 import { BoothWire } from './components/booth-wire'
+import { BoothChannels, BoothQuotes, channelList, topInChannel } from './components/booth-board'
+import { hitsChannel } from './components/booth-games'
 
 const TRADER_STRINGS = {
   market: {
@@ -96,21 +97,32 @@ function DeskBible() {
   )
 }
 
-function MyPositions() {
+function MyPositions({ channel }: { channel: string | null }) {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
   if (!mounted) return null
-  return <MyPositionsInner />
+  return <MyPositionsInner channel={channel} />
 }
 
-function MyPositionsInner() {
+function MyPositionsInner({ channel }: { channel: string | null }) {
   const { session } = useProphecy()
+  const wallet = session?.wallet ?? null
+  const book = usePositionsData(wallet)
+  const positions = book.rows
+    .filter((row) => hitsChannel(`${row.marketLabel ?? ''} ${row.position.marketTitle ?? row.position.marketName ?? ''}`, channel))
+    .map((row) => row.position)
   return (
     <PositionsTable
-      wallet={session?.wallet ?? null}
+      wallet={wallet}
+      positions={positions}
       marketHref={(p) => marketPath(p.marketId, p.marketTitle ?? p.marketName, '/m')}
       renderCard={(row) => <PositionStrip row={row} />}
-      emptyState={<BoothEmpty title="Book is flat" message="Take a side. Size and P/L land here." />}
+      emptyState={
+        <BoothEmpty
+          title={channel ? 'Book is flat on this ISO' : 'Book is flat'}
+          message={channel ? 'No size on this channel.' : 'Take a side. Size and P/L land here.'}
+        />
+      }
     />
   )
 }
@@ -213,8 +225,14 @@ export default function Page() {
   const all = useVenueMarkets()
   const loading = all.loading
   const events = all.events
-  const lead = events.length ? pickFeatured(events, 'volume') : null
+  const [channel, setChannel] = useState<string | null>(null)
+  const [pgmId, setPgmId] = useState<string | null>(null)
+  const autoLead = events.length ? pickFeatured(events, 'trades') ?? pickFeatured(events, 'volume') : null
+  const lead = (pgmId && events.find((event) => event.id === pgmId)) || autoLead
+  const flow = topInChannel(events, channel)
+  const flowMarket = lead && hitsChannel(`${lead.title ?? ''} ${lead.name ?? ''}`, channel) ? lead : flow
   const clock = useSimClock()
+  const channels = channelList(events)
 
   return (
     <VenueKitStringsProvider value={TRADER_STRINGS}>
@@ -229,6 +247,7 @@ export default function Page() {
             <DeskTelemetry markets={loading ? 0 : events.length} pgm={Boolean(lead)} />
             <DeskBible />
             <BoothWire />
+            <BoothChannels channels={channels} value={channel} onChange={setChannel} />
             <GetPst />
 
             <div className="booth-wall">
@@ -237,7 +256,7 @@ export default function Page() {
                 {lead ? (
                   <div className="booth-pgm">
                     <div className="booth-pgm__chart">
-                      <span className="booth-pgm__chart-label">PX · LIVE</span>
+                      <span className="booth-pgm__chart-label">PX · LIVE · ON PGM</span>
                       <PriceChart market={lead.id} live height={96} showGrid={false} showLegend={false} className="booth-spark__chart" />
                     </div>
                     <div data-venue-hero>
@@ -258,42 +277,32 @@ export default function Page() {
               </Monitor>
 
               <Monitor cam="CAM 2" label="LIVE QUOTES" live>
-                <SimQuote clock={clock} />
-                <MarketGrid
+                <BoothQuotes
                   events={events}
                   loading={loading}
-                  variant="list"
-                  pulse
-                  emptyState={<BoothEmpty title="Board is dark" message="No tradeable NFL quotes on this scope." />}
-                  renderItem={(event) => (
-                    <div className="booth-quote">
-                      <MarketCard
-                        market={event}
-                        pulse
-                        href={marketPath(event.id, event.title ?? event.name, '/m')}
-                        renderFooter={() => <BoothSpark marketId={event.id} />}
-                      />
-                    </div>
-                  )}
+                  channel={channel}
+                  pgmId={lead?.id ?? null}
+                  onLock={setPgmId}
+                  empty={<BoothEmpty title="Board is dark" message="No tradeable NFL quotes on this ISO." />}
                 />
               </Monitor>
 
               <div className="booth-stack">
                 <Monitor cam="CAM 3" label="FLOW" live>
-                  <SimFlow clock={clock} />
-                  {lead ? (
+                  <SimFlow clock={clock} channel={channel} />
+                  {flowMarket ? (
                     <ActivityFeed
-                      marketId={lead.id}
+                      marketId={flowMarket.id}
                       limit={12}
-                      emptyState={<BoothEmpty title="No prints" message="Flow lands here when size hits the lead." />}
+                      emptyState={<BoothEmpty title="No prints" message="Flow lands here when size hits this ISO." />}
                     />
                   ) : (
                     <BoothEmpty title="No flow source" message="Lock a PGM market to see prints." />
                   )}
                 </Monitor>
                 <Monitor cam="CAM 4" label="OPEN BOOK">
-                  <SimBook clock={clock} />
-                  <MyPositions />
+                  <SimBook clock={clock} channel={channel} />
+                  <MyPositions channel={channel} />
                 </Monitor>
                 <Monitor cam="CAM 5" label="EDGE">
                   <Leaderboard

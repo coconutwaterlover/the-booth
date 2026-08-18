@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { SIM_GAMES } from './booth-games'
 
 const YES_TICKS = [51.2, 52.8, 50.4, 53.6, 52.1, 54.0]
 const SPARK_W = 220
@@ -100,8 +101,19 @@ export function SimQuote({ clock }: { clock: ReturnType<typeof useSimClock> }) {
   )
 }
 
-export function SimFlow({ clock }: { clock: ReturnType<typeof useSimClock> }) {
-  const rows = [0, 1, 2].map((offset) => PRINTS[(clock.step + PRINTS.length - offset) % PRINTS.length])
+export function SimFlow({ clock, channel }: { clock: ReturnType<typeof useSimClock>; channel?: string | null }) {
+  const source = SIM_GAMES.filter((game) => !channel || game.abs.includes(channel))
+  const tape = source.flatMap((game) =>
+    game.markets.map((row) => ({
+      side: row.prints > 20 ? 'BUY' : 'SELL',
+      note: game.abs[0],
+      sz: String(row.prints),
+    })),
+  )
+  if (channel && !source.length) {
+    return <p className="booth-wire__empty">No flow on this ISO.</p>
+  }
+  const rows = (tape.length ? tape : PRINTS).map((_, i, list) => list[(clock.step + list.length - i) % list.length]).slice(0, 3)
   return (
     <ol className="booth-sim-tape">
       {rows.map((row, i) => (
@@ -115,7 +127,10 @@ export function SimFlow({ clock }: { clock: ReturnType<typeof useSimClock> }) {
   )
 }
 
-export function SimBook({ clock }: { clock: ReturnType<typeof useSimClock> }) {
+export function SimBook({ clock, channel }: { clock: ReturnType<typeof useSimClock>; channel?: string | null }) {
+  if (channel && channel !== 'KC') {
+    return <p className="booth-wire__empty">No sim size on this ISO.</p>
+  }
   return (
     <article className={`booth-sim booth-sim--book ${clock.hot ? 'is-tick' : ''}`} data-dir={clock.pnlDir}>
       <header>
