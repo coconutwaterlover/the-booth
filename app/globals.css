@@ -297,6 +297,17 @@ body {
   border: 1px solid var(--pc-border);
 }
 
+@media (min-width: 1081px) {
+  .booth-wall {
+    height: calc(100dvh - 15.5rem);
+    min-height: 420px;
+  }
+
+  .booth-desk {
+    overflow: hidden;
+  }
+}
+
 .booth-desk {
   display: grid;
   grid-template-columns: minmax(280px, 0.95fr) minmax(0, 1.35fr) minmax(270px, 0.85fr);
@@ -595,6 +606,168 @@ body {
 
 .booth-quote {
   min-width: 0;
+  position: relative;
+}
+
+.booth-iso-ch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--pc-space) * 3);
+  padding: calc(var(--pc-space) * 2) calc(var(--pc-space) * 3);
+  border: 1px solid var(--pc-border);
+  background: var(--pc-inner);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.booth-iso-ch__tag {
+  color: var(--pc-accent);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  flex: none;
+}
+
+.booth-iso-ch__btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--pc-space) * 2);
+  min-width: 0;
+}
+
+.booth-quotes {
+  display: grid;
+  gap: calc(var(--pc-space) * 3);
+  min-width: 0;
+}
+
+.booth-cluster {
+  border: 1px solid var(--pc-border);
+  background: color-mix(in srgb, var(--pc-surface) 55%, var(--pc-inner));
+}
+
+.booth-cluster > summary {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: calc(var(--pc-space) * 3);
+  align-items: center;
+  padding: 6px 8px;
+  cursor: pointer;
+  color: var(--pc-text);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  list-style: none;
+  background: color-mix(in srgb, var(--pc-inner) 80%, var(--pc-surface));
+  border-bottom: 1px solid var(--pc-border);
+}
+
+.booth-cluster > summary::-webkit-details-marker {
+  display: none;
+}
+
+.booth-cluster > summary span:nth-child(2),
+.booth-cluster > summary span:nth-child(3) {
+  color: var(--pc-muted);
+}
+
+.booth-cluster .vk-grid {
+  padding: calc(var(--pc-space) * 2);
+}
+
+.booth-cluster__list {
+  list-style: none;
+  margin: 0;
+  padding: calc(var(--pc-space) * 2);
+  display: grid;
+  gap: calc(var(--pc-space) * 2);
+}
+
+.booth-quote--pgm {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pc-accent) 55%, transparent);
+}
+
+.booth-quote__tally {
+  display: block;
+  padding: 3px 8px 0;
+  color: var(--pc-gain);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.booth-quote--stby .vk-card {
+  padding: 6px 8px;
+}
+
+.booth-quote--stby .vk-card__title {
+  -webkit-line-clamp: 1;
+  font-size: 12px;
+}
+
+.booth-quote--stby .vk-card button {
+  min-height: 28px;
+  font-size: 11px;
+}
+
+.booth-quote--stby .booth-spark {
+  display: none;
+}
+
+.booth-quote--sim {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: calc(var(--pc-space) * 3);
+  align-items: baseline;
+  padding: 6px 8px;
+  color: var(--pc-text);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+}
+
+.booth-quote--sim p {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.booth-quote--sim span {
+  color: var(--pc-muted);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.booth-more,
+.booth-lock {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 6px 8px;
+  border: 0;
+  border-top: 1px solid var(--pc-border);
+  background: transparent;
+  color: var(--pc-muted);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.booth-lock {
+  width: auto;
+  margin: 4px 8px 8px;
+  border: 1px solid var(--pc-border);
+  color: var(--pc-accent);
 }
 
 .booth-wire {
@@ -650,7 +823,7 @@ body {
   gap: 28px;
   width: max-content;
   padding: 6px 0;
-  animation: booth-wire-scroll 48s linear infinite;
+  animation: booth-wire-scroll 96s linear infinite;
 }
 
 .booth-wire__marquee a {
