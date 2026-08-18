@@ -310,7 +310,7 @@ export default function Page() {
                   </div>
                 </div>
               ) : (
-                <BoothEmpty title="No PGM source" message="Waiting for a tradeable football market." />
+                <BoothEmpty title="No PGM source" message="Waiting for a tradeable NFL market." />
               )}
             </Monitor>
 
@@ -320,7 +320,7 @@ export default function Page() {
                 loading={loading}
                 variant="list"
                 pulse
-                emptyState={<BoothEmpty title="Board is dark" message="No tradeable football quotes on this scope." />}
+                emptyState={<BoothEmpty title="Board is dark" message="No tradeable NFL quotes on this scope." />}
                 cardHref={(event) => marketPath(event.id, event.title ?? event.name, '/m')}
               />
             </Monitor>

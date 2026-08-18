@@ -4,7 +4,7 @@ import { Providers } from './providers'
 
 export const metadata = {
   title: "The Booth",
-  description: "Live quotes, flow, and open positions — American football, from the truck.",
+  description: "Live quotes, flow, and open positions — NFL, from the truck.",
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {

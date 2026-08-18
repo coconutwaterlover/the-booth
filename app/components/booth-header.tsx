@@ -31,7 +31,7 @@ export function BoothHeader({ walletSlot }: { walletSlot?: ReactNode }) {
         </span>
         <div className="booth-header__copy">
           <strong>The Booth</strong>
-          <span>TD desk · American football</span>
+          <span>TD desk · NFL</span>
         </div>
         <span className="booth-header__onair">
           <i />

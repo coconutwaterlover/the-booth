@@ -8,21 +8,17 @@ import { useSearch } from '@prophecy-dev/connect-react'
 // too coarse: an F1 venue scoped to "sport" shows cricket and MLS. `useSearch` is the only surface
 // with a TEXT filter, and it returns full Event objects, so this feeds the same MarketGrid and keeps
 // grouping, columns and the rest.
-const VENUE_QUERY = "Chiefs"
+const VENUE_QUERY = "NFL"
+// Same board as The Tailgate: NFL plus the team names that widen the first page. Different brand,
+// same markets. The main NFL search currently reaches 21 tradeable testnet markets; the team
+// terms pull in calls whose short titles emphasize a player or city.
 // THE TERMS THE VENUE WIDENS WITH, and they are not a nicety — they are the difference between a board
-// and an empty state. The search matches keywords in a market's TITLE, and a market minted for this
-// venue says "Max Verstappen's 2027 F1 team": it contains "Verstappen" and "F1", and NOT the words the
-// creator typed. Measured on testnet right after minting six F1 markets:
-//
-//   "Formula 1"    -> 0        "Verstappen"   -> 1
-//   "Hamilton"     -> 0        "Constructors" -> 2
-//
-// So the venue asks its subject AND its entities, and merges. Fixed count because these are hooks.
+// and an empty state. The venue asks its subject AND its entities, then merges. Fixed count because these are hooks.
 // NOT `as const` — that made an empty list the TUPLE type `readonly []`, and `VENUE_TERMS[0]` on a
 // zero-length tuple is a type ERROR rather than `undefined`. Three of them, in the default case: a
 // venue scaffolded without `--terms` (SOC-560 #4b). The `?? VENUE_QUERY` below was written for
 // exactly the absence the type then denied could happen.
-const VENUE_TERMS: readonly string[] = ["Mahomes","Allen","Bills"]
+const VENUE_TERMS: readonly string[] = ["NFL", "Kansas City Chiefs", "Pittsburgh Steelers"]
 // `tradeable: true` FILTERS AT THE API, which is what makes the limit below worth having: the server
 // returns `limit` TRADEABLE markets rather than `limit` of anything, so settled ones no longer eat
 // the board. (Measured before this: "book" matched 12 at limit 12, ten of them settled — a board of
