@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { usePrivy } from '@privy-io/react-auth'
-import { PriceChart, useDailyDrip, useLiveStats, useProphecy, useStarterGrant } from '@prophecy-dev/connect-react'
+import { PriceChart, useDailyDrip, useProphecy, useStarterGrant } from '@prophecy-dev/connect-react'
 import {
   VenueShell,
   VenueKitStringsProvider,
   MarketGrid,
+  MarketCard,
   marketPath,
   Leaderboard,
   PositionsTable,
@@ -19,7 +20,11 @@ import {
 } from '@prophecy-dev/venue-kit'
 import { useVenueMarkets } from './venue-markets'
 import { BoothHeader } from './components/booth-header'
+import { BoothAux, BoothFoot } from './components/booth-iso-return'
 import { WalletButton } from './components/booth-session'
+import { SimBook, SimFlow, SimQuote, useSimClock } from './components/booth-sim'
+import { BoothSpark } from './components/booth-spark'
+import { BoothWire } from './components/booth-wire'
 
 const TRADER_STRINGS = {
   market: {
@@ -68,17 +73,25 @@ function Monitor({
 }
 
 function DeskTelemetry({ markets, pgm }: { markets: number; pgm: boolean }) {
-  const { stats } = useLiveStats({ refreshMs: 4000 })
   return (
     <div className="booth-telemetry" aria-label="Desk telemetry">
       <span>
-        <i className={`booth-dot ${stats?.upstream ? 'booth-dot--live' : ''}`} />
-        {stats?.upstream ? 'HUB UP' : 'HUB'}
+        <i className="booth-dot booth-dot--live" />
+        SRC LIVE
       </span>
       <span>MKTS {String(markets).padStart(2, '0')}</span>
-      <span>TPM {stats ? stats.tradesPerMin.toFixed(1) : '—'}</span>
-      <span>PRINTS {stats ? stats.recentTrades : '—'}</span>
       <span>PGM {pgm ? 'LOCKED' : 'NO SRC'}</span>
+      <span>GRID 1080P</span>
+      <span>TD DESK</span>
+    </div>
+  )
+}
+
+function DeskBible() {
+  return (
+    <div className="booth-bible" aria-label="Desk key">
+      <span className="booth-bible__show">Show bible</span>
+      <p>PGM = market on air · CAM 2 = quotes · CAM 3 = flow · CAM 4 = your book · CAM 5 = edge · WIRE = headlines</p>
     </div>
   )
 }
@@ -105,8 +118,20 @@ function MyPositionsInner() {
 function PositionStrip({ row }: { row: PositionRow }) {
   const position = row.position
   const href = marketPath(position.marketId, position.marketTitle ?? position.marketName, '/m')
+  const sig = `${row.sizeLabel}|${row.valueLabel}|${row.pnlLabel}`
+  const prev = useRef(sig)
+  const [tick, setTick] = useState(false)
+
+  useEffect(() => {
+    if (prev.current === sig) return
+    prev.current = sig
+    setTick(true)
+    const id = window.setTimeout(() => setTick(false), 620)
+    return () => window.clearTimeout(id)
+  }, [sig])
+
   return (
-    <div className="booth-pos">
+    <div className={`booth-pos ${tick ? 'is-tick' : ''}`}>
       <a className="booth-pos__title" href={href}>
         {row.marketLabel}
       </a>
@@ -117,19 +142,19 @@ function PositionStrip({ row }: { row: PositionRow }) {
         </div>
         <div>
           <dt>SZ</dt>
-          <dd>{row.sizeLabel ?? '—'}</dd>
+          <dd className={tick ? 'is-tick' : ''}>{row.sizeLabel ?? '—'}</dd>
         </div>
         <div>
           <dt>PX</dt>
-          <dd>{row.costLabel ?? '—'}</dd>
+          <dd className={tick ? 'is-tick' : ''}>{row.costLabel ?? '—'}</dd>
         </div>
         <div>
           <dt>MKT</dt>
-          <dd>{row.valueLabel ?? '—'}</dd>
+          <dd className={tick ? 'is-tick' : ''}>{row.valueLabel ?? '—'}</dd>
         </div>
         <div>
           <dt>P/L</dt>
-          <dd>{row.pnlLabel ?? '—'}</dd>
+          <dd className={tick ? 'is-tick' : ''}>{row.pnlLabel ?? '—'}</dd>
         </div>
       </dl>
       {row.statusLabel ? <span className="booth-pos__status">{row.statusLabel}</span> : null}
@@ -158,7 +183,7 @@ function GetPstInner() {
   const dripLabel = drip.amount > 0n ? `Claim ${fmtWei(drip.amount)} PST` : 'Claim PST'
   return (
     <section className="venue-pst">
-      <span className="venue-pst__tag">COLLATERAL</span>
+      <span className="venue-pst__tag">COLD OPEN</span>
       {showGrant ? <span>Starter PST inbound.</span> : null}
       {landed && !showDrip ? <span className="venue-pst__ok">Daily PST on the book.</span> : null}
       {showError ? (
@@ -189,6 +214,7 @@ export default function Page() {
   const loading = all.loading
   const events = all.events
   const lead = events.length ? pickFeatured(events, 'volume') : null
+  const clock = useSimClock()
 
   return (
     <VenueKitStringsProvider value={TRADER_STRINGS}>
@@ -197,53 +223,64 @@ export default function Page() {
           maxWidth="100%"
           header={<BoothHeader walletSlot={<WalletButton />} />}
           mainClassName="booth-main"
-          footer={
-            <div className="booth-footer">
-              <span>The Booth</span>
-              <span>NFL · quotes · flow · book</span>
-              <span>Traders only</span>
-            </div>
-          }
+          footer={<BoothFoot note="PGM · quotes · flow · book" />}
         >
           <>
             <DeskTelemetry markets={loading ? 0 : events.length} pgm={Boolean(lead)} />
+            <DeskBible />
+            <BoothWire />
             <GetPst />
 
-            <div className="booth-desk">
-              <Monitor cam="CAM 1" label="LIVE QUOTES" live>
+            <div className="booth-wall">
+              <div className="booth-desk">
+                <Monitor cam="PGM 1" label="LEAD" live>
+                {lead ? (
+                  <div className="booth-pgm">
+                    <div className="booth-pgm__chart">
+                      <span className="booth-pgm__chart-label">PX · LIVE</span>
+                      <PriceChart market={lead.id} live height={96} showGrid={false} showLegend={false} className="booth-spark__chart" />
+                    </div>
+                    <div data-venue-hero>
+                      <FeaturedMarket
+                        event={lead}
+                        pulse
+                        cardHref={(event) => marketPath(event.id, event.title ?? event.name, '/m')}
+                      />
+                    </div>
+                    <BoothSpark marketId={lead.id} height={36} label="PX · TAPE" />
+                  </div>
+                ) : (
+                  <div className="booth-pgm" data-venue-hero>
+                    <SimQuote clock={clock} />
+                    <BoothEmpty title="No PGM source" message="Waiting for a tradeable NFL market." />
+                  </div>
+                )}
+              </Monitor>
+
+              <Monitor cam="CAM 2" label="LIVE QUOTES" live>
+                <SimQuote clock={clock} />
                 <MarketGrid
                   events={events}
                   loading={loading}
                   variant="list"
                   pulse
                   emptyState={<BoothEmpty title="Board is dark" message="No tradeable NFL quotes on this scope." />}
-                  cardHref={(event) => marketPath(event.id, event.title ?? event.name, '/m')}
+                  renderItem={(event) => (
+                    <div className="booth-quote">
+                      <MarketCard
+                        market={event}
+                        pulse
+                        href={marketPath(event.id, event.title ?? event.name, '/m')}
+                        renderFooter={() => <BoothSpark marketId={event.id} />}
+                      />
+                    </div>
+                  )}
                 />
               </Monitor>
 
-              <Monitor cam="PGM 1" label="PX" live={Boolean(lead)}>
-                {lead ? (
-                  <div className="booth-pgm" data-venue-hero>
-                    <div className="booth-pgm__chart">
-                      <span className="booth-pgm__chart-label">PX · LIVE</span>
-                      <PriceChart market={lead.id} live height={168} showGrid />
-                    </div>
-                    <FeaturedMarket
-                      event={lead}
-                      pulse
-                      cardHref={(event) => marketPath(event.id, event.title ?? event.name, '/m')}
-                    />
-                  </div>
-                ) : (
-                  <BoothEmpty title="No PGM source" message="Waiting for a tradeable NFL market." />
-                )}
-              </Monitor>
-
               <div className="booth-stack">
-                <Monitor cam="CAM 2" label="OPEN BOOK">
-                  <MyPositions />
-                </Monitor>
-                <Monitor cam="CAM 3" label="FLOW" live={Boolean(lead)}>
+                <Monitor cam="CAM 3" label="FLOW" live>
+                  <SimFlow clock={clock} />
                   {lead ? (
                     <ActivityFeed
                       marketId={lead.id}
@@ -254,7 +291,11 @@ export default function Page() {
                     <BoothEmpty title="No flow source" message="Lock a PGM market to see prints." />
                   )}
                 </Monitor>
-                <Monitor cam="CAM 4" label="EDGE">
+                <Monitor cam="CAM 4" label="OPEN BOOK">
+                  <SimBook clock={clock} />
+                  <MyPositions />
+                </Monitor>
+                <Monitor cam="CAM 5" label="EDGE">
                   <Leaderboard
                     metric="edge"
                     limit={8}
@@ -263,6 +304,8 @@ export default function Page() {
                   />
                 </Monitor>
               </div>
+            </div>
+              <BoothAux />
             </div>
           </>
         </VenueShell>
