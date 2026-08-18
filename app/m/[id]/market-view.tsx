@@ -17,6 +17,7 @@ import {
 } from '@prophecy-dev/venue-kit'
 import { PriceChart, useConnect } from '@prophecy-dev/connect-react'
 import { BoothHeader } from '../../components/booth-header'
+import { BoothAux, BoothFoot } from '../../components/booth-iso-return'
 import { WalletButton } from '../../components/booth-session'
 
 function BoothEmpty({ title, message }: { title: string; message: string }) {
@@ -47,13 +48,7 @@ export function MarketView({ id }: { id: string }) {
         maxWidth="100%"
         header={<BoothHeader walletSlot={<WalletButton />} />}
         mainClassName="booth-main"
-        footer={
-          <div className="booth-footer">
-            <span>The Booth</span>
-            <span>ISO · market</span>
-            <span>Traders only</span>
-          </div>
-        }
+        footer={<BoothFoot note="ISO · market" />}
       >
         <Link href="/" className="booth-back">
           ← PGM / board
@@ -131,6 +126,7 @@ export function MarketView({ id }: { id: string }) {
 
           </div>
         )}
+        <BoothAux />
       </VenueShell>
     </div>
     </VenueKitStringsProvider>
